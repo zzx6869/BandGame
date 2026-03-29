@@ -32,8 +32,8 @@
 
 ### 4. 访问地址
 
-- **普通仓库**（例如仓库名 `乐队游戏`）：  
-  `https://<用户名>.github.io/乐队游戏/`  
+- **普通仓库**（例如仓库名 `BandGame`）：  
+  `https://<用户名>.github.io/BandGame/`  
   （若仓库名含编码，以 GitHub 显示的 Pages URL 为准。）
 - **用户/组织主页仓库**（仓库名严格为 `<用户名>.github.io`）：站点在域名根  
   `https://<用户名>.github.io/`，此时应把 Workflow 里 `npm run build` 的  
