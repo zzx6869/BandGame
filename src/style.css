@@ -1,0 +1,68 @@
+:root {
+  --text: #1e293b;
+  --text-muted: #475569;
+  --text-h: #0f172a;
+  --bg: #f8fafc;
+  --bg-elevated: #ffffff;
+  --border: #cbd5e1;
+  --panel: #ffffff;
+  --panel-hover: #f1f5f9;
+  --accent: #5b21b6;
+  --accent-hover: #6d28d9;
+  --accent-text: #ffffff;
+  --hud-bg: color-mix(in srgb, #f8fafc 92%, #ffffff);
+  --backdrop: rgba(15, 23, 42, 0.45);
+  font-family: system-ui, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 偏石板灰的底色，避免纯黑糊成一团 */
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-h: #f8fafc;
+    --bg: #1e293b;
+    --bg-elevated: #293548;
+    --border: #475569;
+    --panel: #334155;
+    --panel-hover: #3d4f63;
+    --accent: #a78bfa;
+    --accent-hover: #c4b5fd;
+    --accent-text: #1e0f3d;
+    --hud-bg: color-mix(in srgb, #1e293b 88%, #334155);
+    --backdrop: rgba(0, 0, 0, 0.55);
+  }
+}
+
+body {
+  margin: 0;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+h1,
+h2 {
+  color: var(--text-h);
+}
+
+p {
+  color: var(--text);
+}
+
+code {
+  font-family: ui-monospace, Consolas, monospace;
+  padding: 0.1em 0.35em;
+  border-radius: 0.25rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  font-size: 0.9em;
+  color: var(--text-h);
+}

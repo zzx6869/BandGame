@@ -1,0 +1,64 @@
+# =============================================================================
+# 仅追踪：源码、配置、文档、锁文件、CI、public 静态资源、Ink 编译产物等。
+# 依赖、构建输出、本地缓存、密钥与误路径见下方规则。
+# =============================================================================
+
+# —— 依赖 ——
+node_modules/
+
+# —— 构建产物（CI/本地 npm run build 生成，勿提交）——
+dist/
+dist-ssr/
+
+# —— 日志 ——
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# —— 环境变量与密钥（若有示例模板可提交 .env.example）——
+.env
+.env.*
+!.env.example
+
+# —— Vite / 工具缓存 ——
+.vite/
+.vite-ssg-temp/
+*.tsbuildinfo
+
+# —— 覆盖率与测试产物（若日后加测试）——
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# —— 本地覆盖配置（*.local 保留用于可选本地后缀文件）——
+*.local
+
+# —— 操作系统 ——
+.DS_Store
+Thumbs.db
+
+# —— 编辑器（若团队要共享设置，可删 .vscode/* 规则或改为白名单）——
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# —— 临时 / 备份 ——
+*.sw?
+*~
+*.orig
+
+# —— 部署平台本地配置（若仅在本机用过 CLI）——
+.vercel/
+.netlify/
+
+# —— 误放进仓库的绝对路径层级（如聊天/历史目录）——
+Users/
