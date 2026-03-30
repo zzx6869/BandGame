@@ -1,4 +1,5 @@
 import type { Instrument } from './types'
+import { monthFromWeekInYear, weekInMonthFromWeekInYear } from './config'
 
 export const INSTRUMENT_LABEL: Record<Instrument, string> = {
   guitar: '吉他🎸',
@@ -16,5 +17,7 @@ export function schoolYearLabel(year: number): string {
 }
 
 export function weekLabel(year: number, weekInYear: number): string {
-  return `${schoolYearLabel(year)} · 第 ${weekInYear} 周`
+  const month = monthFromWeekInYear(weekInYear)
+  const weekInMonth = weekInMonthFromWeekInYear(weekInYear)
+  return `${schoolYearLabel(year)} · ${month}月 · 第${weekInMonth}周`
 }

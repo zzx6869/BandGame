@@ -12,7 +12,7 @@
  * 每周抽几条由 `config.ts` 的 `weeklyRandomEventCount` 决定。
  */
 
-import type { RandomEventDef } from './types'
+import type { RandomEventDef } from '@/game/events/runtime'
 
 export const RANDOM_EVENT_DEFS: RandomEventDef[] = [
   {
@@ -42,6 +42,10 @@ export const RANDOM_EVENT_DEFS: RandomEventDef[] = [
   {
     id: 'rain_station',
     weight: 9,
+    spawnChanceByStats: [
+      { condition: { maxSan: 45 }, chance: 0.95 },
+      { condition: { minSan: 80 }, chance: 0.65 },
+    ],
     meetNpcIds: ['c1'],
     text:
       '放学路上雨突然大起来。站台下挤满人，雨伞滴水在鞋边积成小洼。等车的时间被拉得很长，手机信号一格一格跳。',
@@ -50,6 +54,16 @@ export const RANDOM_EVENT_DEFS: RandomEventDef[] = [
         id: 'walk',
         label: '冒雨走两站，当清醒一下',
         effects: { sanDelta: -6, academicsDelta: 1 },
+        probabilisticFollowups: [
+          {
+            chance: 0.35,
+            chanceByStats: [
+              { condition: { maxSan: 40 }, chance: 0.75 },
+              { condition: { minSan: 75 }, chance: 0.2 },
+            ],
+            eventIds: ['forced_buy_medicine'],
+          },
+        ],
       },
       {
         id: 'wait',
@@ -60,6 +74,8 @@ export const RANDOM_EVENT_DEFS: RandomEventDef[] = [
         id: 'share',
         label: '把伞檐往陌生同学那边让一点',
         effects: { sanDelta: 0, characterFavorDelta: [{ characterId: 'c1', delta: 1 }] },
+        followupEventIds: ['forced_buy_medicine'],
+        probabilisticFollowups: [{ chance: 0.25, eventIds: ['forced_recovering_day'] }],
       },
     ],
   },
@@ -74,6 +90,16 @@ export const RANDOM_EVENT_DEFS: RandomEventDef[] = [
         id: 'focus',
         label: '硬着头皮抠到最后一秒',
         effects: { sanDelta: -8, academicsDelta: 3 },
+        probabilisticFollowups: [
+          {
+            chance: 0.5,
+            chanceByStats: [
+              { condition: { maxSan: 40 }, chance: 0.8 },
+              { condition: { minAcademics: 75 }, chance: 0.25 },
+            ],
+            eventIds: ['forced_post_quiz_headache'],
+          },
+        ],
       },
       {
         id: 'half',
@@ -114,6 +140,10 @@ export const RANDOM_EVENT_DEFS: RandomEventDef[] = [
   {
     id: 'music_room_open',
     weight: 7,
+    spawnChanceByStats: [
+      { condition: { minMainSkill: 60 }, chance: 0.9 },
+      { condition: { maxMainSkill: 28 }, chance: 0.4 },
+    ],
     text:
       '路过音乐教室，门虚掩着，里面没人。灯还亮，谱架上的谱子被穿堂风吹得翘起一角。走廊尽头是上课铃的余音。',
     condition: { minMainSkill: 25 },
@@ -136,31 +166,6 @@ export const RANDOM_EVENT_DEFS: RandomEventDef[] = [
     ],
   },
   {
-    id: 'school_festival_prep',
-    weight: 6,
-    meetNpcIds: ['c2'],
-    text:
-      '校庆彩排通知占掉周末半天。群里不停 @全体成员，服装、走位、音量条改了三版。你看到「待定」两个字就有点缺氧。',
-    condition: { minAbsoluteWeek: 12 },
-    choices: [
-      {
-        id: 'commit',
-        label: '认真跟完彩排，顺路记了点舞台经验',
-        effects: { sanDelta: -7, mainSkillDelta: 2, academicsDelta: -2 },
-      },
-      {
-        id: 'skip_half',
-        label: '请假早退一小时，守住自己的练习时间',
-        effects: { sanDelta: -3, mainSkillDelta: 3 },
-      },
-      {
-        id: 'bond',
-        label: '留下来帮同学搬道具，攒点人情',
-        effects: { sanDelta: -4, npcPairIntimacyDelta: [{ npcIdA: 'c2', npcIdB: 'c3', delta: 3 }], npcSpecialtySkillDelta: [{ characterId: 'c2', delta: 1 }] },
-      },
-    ],
-  },
-  {
     id: 'class_group_spam',
     weight: 7,
     text:
@@ -169,12 +174,17 @@ export const RANDOM_EVENT_DEFS: RandomEventDef[] = [
       {
         id: 'reply',
         label: '跟条收到，顺便扫一眼附件',
-        effects: { sanDelta: -1 },
+        effects: { sanDelta: -1, academicsDelta: 1 },
       },
       {
         id: 'mute',
         label: '长按静音，假装自己没有群',
         effects: { sanDelta: 1, academicsDelta: -1 },
+      },
+      {
+        id: 'pin_and_delay',
+        label: '先置顶，晚点集中处理',
+        effects: { sanDelta: 0, academicsDelta: 0, mainSkillDelta: 1 },
       },
     ],
   },
@@ -199,30 +209,6 @@ export const RANDOM_EVENT_DEFS: RandomEventDef[] = [
         id: 'jog',
         label: '继续跑圈，当放松眼部肌肉',
         effects: { sanDelta: 3 },
-      },
-    ],
-  },
-  {
-    id: 'band_first_quarrel',
-    weight: 5,
-    text:
-      '排练到第三遍，主音和节奏在段落分割上杠上了。谁也没大声嚷，但琴包扣上的声音一下比一下重。空气里像有根弦快绷断。',
-    condition: { bandUnlocked: true, minBond: 15 },
-    choices: [
-      {
-        id: 'mediate',
-        label: '提议先喝口水，把分歧写在谱子上再论',
-        effects: { sanDelta: -3, bondDelta: 4 },
-      },
-      {
-        id: 'side',
-        label: '不自觉站队，顺着话头多说了两句',
-        effects: { sanDelta: -6, bondDelta: -4, npcPairIntimacyDelta: [{ npcIdA: 'c1', npcIdB: 'c2', delta: -2 }] },
-      },
-      {
-        id: 'silent',
-        label: '沉默收拾线材，把空间留给彼此冷静',
-        effects: { sanDelta: -4, bondDelta: -1 },
       },
     ],
   },
@@ -273,6 +259,11 @@ export const RANDOM_EVENT_DEFS: RandomEventDef[] = [
         id: 'vent',
         label: '找熟人吐槽两句，笑一笑散掉闷气',
         effects: { sanDelta: 2, characterFavorDelta: [{ characterId: 'c3', delta: 2 }] },
+      },
+      {
+        id: 'hybrid_mode',
+        label: '学习练习都保底，强度都下调',
+        effects: { sanDelta: -3, academicsDelta: 2, mainSkillDelta: 1 },
       },
     ],
   },

@@ -87,6 +87,127 @@ export type NpcCreateInput = {
   note?: string
 }
 
+export type InviteRule = {
+  minMainSkill?: number
+  minBandMemberCount?: number
+  requireBandMemberIdsAll?: string[]
+  reason: string
+}
+
+export type InviteRuleEvalContext = {
+  bandMemberIds: string[]
+  mainSkill: number
+}
+
+export type InviteFavorThresholdRule = {
+  /** 队内人数至少达到该值时生效 */
+  minBandMemberCount?: number
+  /** 必须同时满足：以下角色都已在乐队中才生效 */
+  requireBandMemberIdsAll?: string[]
+  /** 达到该阈值才允许入队 */
+  threshold: number
+}
+
+export type InviteFavorThresholdConfig = {
+  /** 默认好感阈值（不满足 byBand 任何规则时使用） */
+  default: number
+  /** 若满足其中某条规则，则以该条 threshold 覆盖 default（按数组顺序，命中第一条） */
+  byBandRules?: InviteFavorThresholdRule[]
+}
+
+export type InviteFailureSpeechConfig = {
+  favorLow?: string
+  /** 好感差距较小（快达标）时优先使用 */
+  favorLowNear?: string
+  /** 好感差距较大（离达标较远）时优先使用 */
+  favorLowFar?: string
+  ruleBlocked?: string
+  /** 失败原因为技能门槛时优先使用 */
+  ruleSkillBlocked?: string
+  /** 失败原因为队伍/成员门槛时优先使用 */
+  ruleBandBlocked?: string
+  fallback?: string
+}
+
+/**
+ * 根据配置规则校验某角色当前是否满足入队条件，返回失败原因列表（空数组表示全部通过）。
+ */
+export function evaluateInviteRuleFailures(
+  characterId: string,
+  rulesMap: Record<string, InviteRule[]>,
+  ctx: InviteRuleEvalContext,
+): string[] {
+  const fails: string[] = []
+  const rules = rulesMap[characterId] ?? []
+  for (const r of rules) {
+    if (r.minMainSkill != null && ctx.mainSkill < r.minMainSkill) fails.push(r.reason)
+    if (r.minBandMemberCount != null && ctx.bandMemberIds.length < r.minBandMemberCount) fails.push(r.reason)
+    if (r.requireBandMemberIdsAll?.length) {
+      const ok = r.requireBandMemberIdsAll.every((id) => ctx.bandMemberIds.includes(id))
+      if (!ok) fails.push(r.reason)
+    }
+  }
+  return fails
+}
+
+/**
+ * 计算某角色当前“邀请入队所需好感阈值”，支持随队伍组成变化。
+ *
+ * - 先读取角色配置：`default`
+ * - 若存在 `byBandRules`，按顺序匹配第一条命中规则并使用其 `threshold`
+ */
+export function getInviteFavorThreshold(
+  characterId: string,
+  thresholdsMap: Record<string, InviteFavorThresholdConfig>,
+  ctx: { bandMemberIds: string[] },
+  fallbackDefault: number,
+): number {
+  const cfg = thresholdsMap[characterId]
+  const base = cfg?.default ?? fallbackDefault
+  const rules = cfg?.byBandRules ?? []
+  for (const r of rules) {
+    if (r.minBandMemberCount != null && ctx.bandMemberIds.length < r.minBandMemberCount) continue
+    if (r.requireBandMemberIdsAll?.length) {
+      const ok = r.requireBandMemberIdsAll.every((id) => ctx.bandMemberIds.includes(id))
+      if (!ok) continue
+    }
+    return r.threshold
+  }
+  return base
+}
+
+/**
+ * 根据失败类型返回角色口吻台词。
+ */
+export function getInviteFailureSpeech(
+  characterId: string,
+  speechMap: Record<string, InviteFailureSpeechConfig>,
+  ctx: {
+    favorFailed: boolean
+    ruleFailed: boolean
+    favorGap?: number
+    ruleFailReasons?: string[]
+  },
+): string | null {
+  const cfg = speechMap[characterId]
+  if (!cfg) return null
+  if (ctx.favorFailed) {
+    const gap = Math.max(0, ctx.favorGap ?? 0)
+    if (gap > 12 && cfg.favorLowFar) return cfg.favorLowFar
+    if (gap <= 8 && cfg.favorLowNear) return cfg.favorLowNear
+    if (cfg.favorLow) return cfg.favorLow
+  }
+  if (ctx.ruleFailed) {
+    const reasons = ctx.ruleFailReasons ?? []
+    const bySkill = reasons.some((r) => r.includes('技能') || r.includes('实力') || r.includes('演奏'))
+    const byBand = reasons.some((r) => r.includes('成员') || r.includes('队') || r.includes('阵容'))
+    if (bySkill && cfg.ruleSkillBlocked) return cfg.ruleSkillBlocked
+    if (byBand && cfg.ruleBandBlocked) return cfg.ruleBandBlocked
+    if (cfg.ruleBlocked) return cfg.ruleBlocked
+  }
+  return cfg.fallback ?? null
+}
+
 /**
  * 由创建项列表生成完整 roster：补全所有人际亲密度 key，并应用 initialBonds。
  * @param statClamp 与游戏内 STAT_MAX 一致，用于钳制技能 / 好感 / 亲密度

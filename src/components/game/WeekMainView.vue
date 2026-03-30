@@ -2,11 +2,19 @@
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { useSchoolGameStore } from '@/stores/schoolGame'
-import { INVITE_FAVOR_THRESHOLD } from '@/game/config'
 import { INSTRUMENT_LABEL } from '@/game/labels'
 
 const store = useSchoolGameStore()
-const { characters, bandMemberIds, bandUnlocked, restUsedThisWeek } = storeToRefs(store)
+const {
+  characters,
+  bandMemberIds,
+  bandUnlocked,
+  restUsedThisWeek,
+  inviteFeedbackVisible,
+  inviteFeedbackTitle,
+  inviteFeedbackSpeech,
+  inviteFeedbackReasons,
+} = storeToRefs(store)
 
 const roster = computed(() =>
   characters.value
@@ -15,8 +23,7 @@ const roster = computed(() =>
       ...c,
       specialtyLabel: INSTRUMENT_LABEL[c.specialty],
       inBand: bandMemberIds.value.includes(c.id),
-      canInvite:
-        !bandMemberIds.value.includes(c.id) && c.favorWithPlayer >= INVITE_FAVOR_THRESHOLD,
+      canInvite: !bandMemberIds.value.includes(c.id),
     })),
 )
 </script>
@@ -67,10 +74,10 @@ const roster = computed(() =>
         <button
           type="button"
           class="btn small"
-          :disabled="!c.canInvite"
+          :disabled="c.inBand"
           @click="store.invite(c.id)"
         >
-          邀请入队
+          {{ c.inBand ? '已在队内' : '邀请入队' }}
         </button>
       </li>
     </ul>
@@ -85,6 +92,19 @@ const roster = computed(() =>
 
     <div class="footer">
       <button type="button" class="btn primary wide" @click="store.endWeek()">结束本周</button>
+    </div>
+
+    <div v-if="inviteFeedbackVisible" class="modal-mask" @click.self="store.closeInviteFeedback()">
+      <article class="modal-card">
+        <header class="modal-head">
+          <h4>{{ inviteFeedbackTitle }}</h4>
+          <button type="button" class="btn small" @click="store.closeInviteFeedback()">关闭</button>
+        </header>
+        <p class="speech">“{{ inviteFeedbackSpeech }}”</p>
+        <ul class="reasons">
+          <li v-for="(r, idx) in inviteFeedbackReasons" :key="idx">{{ r }}</li>
+        </ul>
+      </article>
     </div>
   </section>
 </template>
@@ -238,5 +258,50 @@ const roster = computed(() =>
   margin-top: 1.75rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border);
+}
+
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.modal-card {
+  width: min(36rem, 100%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  padding: 0.8rem;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.modal-head h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-h);
+}
+
+.speech {
+  margin: 0.8rem 0 0.5rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.reasons {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
 }
 </style>

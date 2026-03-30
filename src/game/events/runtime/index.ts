@@ -6,6 +6,10 @@ export type {
   RandomEventEffectInput,
   RandomEventEffectOutput,
   RandomEventEffects,
+  RandomEventProbabilisticFollowup,
+  RandomEventStatCondition,
+  RandomEventStatProbabilityRule,
+  RandomEventStatSnapshot,
 } from './types'
 
 export {
@@ -17,6 +21,3 @@ export {
   pickWeeklyRandomEvents,
   resolveRandomEventEffects,
 } from './engine'
-
-/** 事件列表：仅数据，编辑 `events.config.ts` */
-export { RANDOM_EVENT_DEFS } from './events.config'

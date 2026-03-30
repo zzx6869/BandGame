@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useSchoolGameStore } from '@/stores/schoolGame'
-import type { RandomEventChoice } from '@/game/randomEvents'
+import type { RandomEventChoice } from '@/game/events'
 
 const store = useSchoolGameStore()
 const {
@@ -10,6 +10,7 @@ const {
   randomEventQueue,
   randomEventsThisWeekTotal,
   randomEventVisibleOutcome,
+  randomEventModalTitle,
 } = storeToRefs(store)
 
 const progressLabel = computed(() => {
@@ -60,7 +61,7 @@ function onDismissOutcome() {
     >
       <div class="modal">
         <p v-if="progressLabel" class="progress">{{ progressLabel }}</p>
-        <h2 id="ev-title" class="modal-title">本周随机事件</h2>
+        <h2 id="ev-title" class="modal-title">{{ randomEventModalTitle }}</h2>
         <p class="modal-body">{{ activeRandomEvent.text }}</p>
 
         <div v-if="needsChoice" class="choices" role="group" aria-label="你的选择">

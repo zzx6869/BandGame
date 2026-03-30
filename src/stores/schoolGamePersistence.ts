@@ -1,6 +1,6 @@
 import type { BandActivityRecord, GamePhase, Instrument, SongEntry } from '@/game/types'
 import type { NpcSnapshot } from '@/game/npc'
-import type { RandomEventDef } from '@/game/randomEvents'
+import type { RandomEventDef } from '@/game/events'
 
 /** 与某角色在随机事件中产生过直接互动时的记录（与 store 导出类型一致） */
 export type NpcRandomEventMemory = {
@@ -36,8 +36,11 @@ export type SchoolGamePersisted = {
   randomEventsThisWeekTotal: number
   randomEventVisibleOutcome: string | null
   randomEventDeferQueueAdvance: boolean
+  randomEventModalTitle?: string
   npcRandomEventMemories: Record<string, NpcRandomEventMemory[]>
+  eventLastTriggeredWeek?: Record<string, number>
   restUsedThisWeek: boolean
+  meetEventTriggeredThisWeek?: boolean
 }
 
 function isGamePhase(x: unknown): x is GamePhase {
@@ -69,8 +72,16 @@ export function loadSchoolGamePersisted(): SchoolGamePersisted | null {
     if (typeof p.randomEventsThisWeekTotal !== 'number') return null
     if (p.randomEventVisibleOutcome != null && typeof p.randomEventVisibleOutcome !== 'string') return null
     if (typeof p.randomEventDeferQueueAdvance !== 'boolean') return null
+    if (p.randomEventModalTitle != null && typeof p.randomEventModalTitle !== 'string') return null
     if (!p.npcRandomEventMemories || typeof p.npcRandomEventMemories !== 'object') return null
+    if (p.eventLastTriggeredWeek != null && typeof p.eventLastTriggeredWeek !== 'object') return null
+    if (p.eventLastTriggeredWeek) {
+      for (const v of Object.values(p.eventLastTriggeredWeek)) {
+        if (typeof v !== 'number') return null
+      }
+    }
     if (typeof p.restUsedThisWeek !== 'boolean') return null
+    if (p.meetEventTriggeredThisWeek != null && typeof p.meetEventTriggeredThisWeek !== 'boolean') return null
 
     return p as SchoolGamePersisted
   } catch {
